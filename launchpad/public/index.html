@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LaunchPad — Deploy Anything, From Anywhere</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="bg-mesh"></div>
+<div id="app">
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🚀</div>
+      <div class="logo-text">Launch<span>Pad</span></div>
+    </div>
+    <div class="badge">BETA</div>
+  </header>
+
+  <div class="steps-bar" id="stepsBar">
+    <div class="step-dot active" id="step-1"><div class="dot-circle">1</div><div class="dot-label">Connect</div></div>
+    <div class="step-dot" id="step-2"><div class="dot-circle">2</div><div class="dot-label">Repo</div></div>
+    <div class="step-dot" id="step-3"><div class="dot-circle">3</div><div class="dot-label">Target</div></div>
+    <div class="step-dot" id="step-4"><div class="dot-circle">4</div><div class="dot-label">Deploy</div></div>
+    <div class="step-dot" id="step-5"><div class="dot-circle">✓</div><div class="dot-label">Live!</div></div>
+  </div>
+
+  <!-- SCREEN 1: GITHUB CONNECT -->
+  <div class="screen active" id="screen-1">
+    <div class="hero">
+      <h1>Deploy your app<br><em>without the stress</em></h1>
+      <p>Connect your GitHub account. We'll handle everything else — no terminal, no config files.</p>
+    </div>
+
+    <div class="card" id="githubConnectCard">
+      <div class="card-title"><span class="icon">🔑</span> Step 1 — Connect GitHub</div>
+
+      <div id="tokenForm">
+        <p class="text-muted mb-16" style="font-size:13px;line-height:1.6">
+          We need a GitHub Personal Access Token to deploy on your behalf. It stays in your browser only — we never store it.
+        </p>
+
+        <div class="input-wrap mb-16">
+          <span class="input-icon">🔐</span>
+          <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
+        </div>
+
+        <div class="tip-box">
+          <span class="tip-icon">❓</span>
+          <span>Don't have a token? <a href="https://github.com/settings/tokens/new?scopes=repo,workflow&description=LaunchPad" target="_blank" class="link">Click here to create one</a> — select <strong>repo</strong> scope, then paste it above.</span>
+        </div>
+
+        <button class="btn btn-primary btn-full mt-16" onclick="connectGitHub()">
+          <span id="connectLabel">Connect GitHub →</span>
+        </button>
+      </div>
+
+      <div id="githubConnected" style="display:none">
+        <div class="detect-result">
+          <div class="detect-icon">🐙</div>
+          <div class="detect-info">
+            <h3 id="ghUsername">Connected!</h3>
+            <p id="ghUserSub">GitHub account linked successfully</p>
+          </div>
+          <span class="target-tag tag-free">✓ Ready</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: PICK REPO -->
+  <div class="screen" id="screen-2">
+    <div class="card">
+      <div class="card-title"><span class="icon">📁</span> Choose Your Repository</div>
+      <div class="input-wrap mb-16">
+        <span class="input-icon">🔍</span>
+        <input type="text" id="repoSearch" placeholder="Search your repos…" oninput="filterRepos(this.value)" />
+      </div>
+      <div id="repoList" class="target-list scrollable">
+        <div class="connecting"><div class="spinner"></div> Loading your repositories…</div>
+      </div>
+    </div>
+    <div id="selectedRepoCard" style="display:none" class="card">
+      <div class="card-title"><span class="icon">✅</span> Selected</div>
+      <div class="detect-result">
+        <div class="detect-icon" id="selectedRepoEmoji">📦</div>
+        <div class="detect-info">
+          <h3 id="selectedRepoName">—</h3>
+          <p id="selectedRepoDesc">—</p>
+          <div class="detect-badges" id="selectedRepoBadges"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: DEPLOYMENT TARGET -->
+  <div class="screen" id="screen-3">
+    <div class="card">
+      <div class="card-title"><span class="icon">🎯</span> Choose Deployment Target</div>
+      <p class="text-muted mb-16" style="font-size:13px;line-height:1.5">All options below are <strong>100% free</strong>. We recommend GitHub Pages — no extra account needed.</p>
+      <div class="target-list">
+        <div class="target-card selected" onclick="selectTarget(this,'gh-pages')">
+          <div class="target-icon">🐙</div>
+          <div class="target-info">
+            <div class="target-name">GitHub Pages</div>
+            <div class="target-desc">Free hosting — uses your GitHub account directly</div>
+          </div>
+          <span class="target-tag tag-free">Recommended</span>
+        </div>
+        <div class="target-card" onclick="selectTarget(this,'vercel')">
+          <div class="target-icon">▲</div>
+          <div class="target-info">
+            <div class="target-name">Vercel</div>
+            <div class="target-desc">Paste your Vercel token to deploy instantly</div>
+          </div>
+          <span class="target-tag tag-popular">Popular</span>
+        </div>
+        <div class="target-card" onclick="selectTarget(this,'netlify')">
+          <div class="target-icon">◆</div>
+          <div class="target-info">
+            <div class="target-name">Netlify</div>
+            <div class="target-desc">Paste your Netlify token to deploy instantly</div>
+          </div>
+          <span class="target-tag tag-fast">Fast</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Extra token for Vercel/Netlify -->
+    <div class="card" id="extraTokenCard" style="display:none">
+      <div class="card-title"><span class="icon">🔑</span> <span id="extraTokenLabel">Platform Token</span></div>
+      <div class="input-wrap">
+        <span class="input-icon">🔐</span>
+        <input type="password" id="extraToken" placeholder="Paste your token here…" />
+      </div>
+      <div class="tip-box mt-12">
+        <span class="tip-icon">💡</span>
+        <span id="extraTokenTip">Create a free token on the platform's dashboard.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">⚙️</span> Options</div>
+      <div class="settings-row">
+        <div><div class="settings-label">Build before deploy</div><div class="settings-sub">Run npm run build automatically</div></div>
+        <div class="toggle" id="buildToggle" onclick="this.classList.toggle('on')"></div>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">Build folder</div><div class="settings-sub">Output directory (dist, build, out…)</div></div>
+        <input type="text" id="buildFolder" value="dist" style="width:80px;text-align:center;padding:8px;font-family:'DM Mono',monospace;font-size:13px" />
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: DEPLOYING -->
+  <div class="screen" id="screen-4">
+    <div class="card">
+      <div class="card-title"><span class="icon">🚀</span> Deploying your project…</div>
+      <div class="flex items-center justify-between mb-16">
+        <span class="text-muted" style="font-size:13px" id="deployStatus">Initializing…</span>
+        <span class="mono text-accent" style="font-size:13px" id="deployPct">0%</span>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar" id="deployProgress" style="width:0%"></div>
+      </div>
+      <div class="deploy-steps" id="deploySteps">
+        <div class="deploy-step"><div class="step-indicator pending" id="ds-1">1</div><div class="step-body"><h4 id="ds-1-title">Preparing</h4><p id="ds-1-desc">Getting your repository ready</p></div></div>
+        <div class="deploy-step"><div class="step-indicator pending" id="ds-2">2</div><div class="step-body"><h4 id="ds-2-title">Building</h4><p id="ds-2-desc">Compiling your project</p></div></div>
+        <div class="deploy-step"><div class="step-indicator pending" id="ds-3">3</div><div class="step-body"><h4 id="ds-3-title">Deploying</h4><p id="ds-3-desc">Publishing to the web</p></div></div>
+        <div class="deploy-step"><div class="step-indicator pending" id="ds-4">4</div><div class="step-body"><h4 id="ds-4-title">Finalizing</h4><p id="ds-4-desc">Enabling HTTPS & CDN</p></div></div>
+      </div>
+      <div id="deployError" style="display:none" class="error-box mt-12">
+        <h4>⚠️ Something went wrong</h4>
+        <p id="deployErrorMsg">An error occurred during deployment.</p>
+        <button class="btn btn-secondary btn-sm mt-12" onclick="goBack();goBack()">← Try again</button>
+      </div>
+    </div>
+    <div class="tip-box">
+      <span class="tip-icon">☕</span>
+      <span>First deploys take 1–3 minutes. Future deploys are much faster!</span>
+    </div>
+  </div>
+
+  <!-- SCREEN 5: SUCCESS -->
+  <div class="screen" id="screen-5">
+    <div class="success-card">
+      <span class="success-emoji">🎉</span>
+      <h2>You're live!</h2>
+      <p>Your project is publicly accessible right now.</p>
+      <div class="deploy-url" onclick="copyUrl()" id="deployUrlBox">
+        <span id="liveUrl">https://username.github.io/repo</span>
+        <span>📋</span>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <a id="openSiteBtn" href="#" target="_blank" class="btn btn-primary">Open Site 🔗</a>
+        <button class="btn btn-secondary" onclick="shareProject()">Share 📤</button>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="metric-value" id="m-time">—</div><div class="metric-label">Deploy Time</div></div>
+        <div class="metric"><div class="metric-value">CDN</div><div class="metric-label">Edge Network</div></div>
+        <div class="metric"><div class="metric-value">SSL</div><div class="metric-label">HTTPS Enabled</div></div>
+      </div>
+    </div>
+    <div class="card mt-16">
+      <div class="card-title"><span class="icon">📌</span> What's next?</div>
+      <div class="target-list">
+        <div class="target-card" onclick="showToast('Connect your repo in GitHub Settings → Pages to auto-deploy on every push 🔄')">
+          <div class="target-icon">🔄</div>
+          <div class="target-info"><div class="target-name">Auto-deploy on push</div><div class="target-desc">Every git push → instant redeploy</div></div>
+          <span>→</span>
+        </div>
+        <div class="target-card" onclick="showToast('Buy a domain on Namecheap or Google Domains, then point it to your deployment 🌐')">
+          <div class="target-icon">🌐</div>
+          <div class="target-info"><div class="target-name">Add custom domain</div><div class="target-desc">Use your own .com address</div></div>
+          <span>→</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-ghost btn-full mt-16" onclick="startOver()">← Deploy another project</button>
+  </div>
+
+</div><!-- /app -->
+
+<div class="bottom-actions">
+  <div class="action-row" id="actionRow">
+    <button class="btn btn-secondary" id="btnBack" onclick="goBack()" style="display:none">← Back</button>
+    <button class="btn btn-primary full" id="btnNext" onclick="goNext()">
+      <span id="btnNextLabel">Get Started →</span>
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>
